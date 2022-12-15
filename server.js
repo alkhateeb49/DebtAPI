@@ -2,7 +2,7 @@ const express = require('express');
 const app=express();
 require('dotenv').config()
 const bp = require('body-parser')
-const PORT=process.env.PORT;
+const PORT=process.env.PORT || 8000;
 
 
 let pg = require('pg');
@@ -12,7 +12,7 @@ app.use(bp.json())
 app.use(bp.urlencoded({ extended: true }))
 
 
-//Error Handler
+//Error
 process.on
 (
     'uncaughtException',
@@ -20,7 +20,7 @@ process.on
     {
         console.log(err)
         var stack = err.stack;
-       
+        
     }
 );
 
