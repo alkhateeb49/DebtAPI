@@ -24,10 +24,14 @@ process.on
     }
 );
 
-
+app.get('/', home)
 app.get('/newUser', newUser)
 app.post('/', getData)
 
+
+function home(req, res) {
+    res.sendFile('index.html', {root: __dirname});
+}
 function newUser(req, res) {
   try {
     // res.sendFile('index.html', {root: __dirname});
