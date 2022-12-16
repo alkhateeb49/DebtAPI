@@ -26,6 +26,7 @@ process.on
 
 app.get('/', home)
 app.get('/newUser', newUser)
+app.get('/show', getUser)
 app.post('/', getData)
 
 
@@ -51,6 +52,14 @@ function newUser(req, res) {
   }
 }
 
+function getUser(req, res) {
+    // console.log(req.body.name);
+    let sqlQuery = 'SELECT * FROM Users';
+    client.query(sqlQuery).then(data => {
+      console.log(data.rows);
+      res.status(200).send(data.rows);
+      });
+}
 function getData(req, res) {
   if(req.body.name){
     // console.log(req.body.name);
