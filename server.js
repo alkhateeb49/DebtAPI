@@ -13,7 +13,7 @@ var session = require('express-session')
 //   saveUninitialized: true,
 //   cookie: { secure: true }
 // }))
-app.use(session({ secret: 'kAjllfhlTg6zvvW52D6f', cookie: { maxAge: 60000 }}))
+app.use(session({ secret: 'kAjllfhlTg6zvvW52D6f', cookie: { maxAge: null }}))
 //
 
 
@@ -40,8 +40,10 @@ app.get('/', home)
 app.get('/test', test)
 app.get('/newUser', newUser)
 app.get('/show', getUser)
-app.post('/', getData)
 app.get('/login', login)
+app.get('/logout', logout)
+
+app.post('/', getData)
 
 
 function home(req, res) {
@@ -75,22 +77,45 @@ function login(req, res) {
     client.query('SELECT * FROM Users WHERE userName = ($1) AND password = ($2)',[UserName,password]).then(data => {
       if(data.rows.length == 1){
         req.session.regenerate(function(err) {
-          // will have a new session here
-          res.end(req.session.id);
-        })
+
+          client.query('SELECT * FROM SessionID WHERE userName = ($1)',[data.rows[0].username]).then(data2 => {
+            if(data2.rows.length == 0){
+              let sqlQuery = 'insert into SessionID (userId,userName,email,phone,Session) values ($1,$2,$3,$4,$5)';
+              let value = [data.rows[0].id,data.rows[0].username,data.rows[0].email,data.rows[0].phone,req.session.id];
+              client.query(sqlQuery, value).then(data => {
+              });
+            }
+            else{
+                let sqlQuery = 'update SessionID SET Session = ($1) where userId = ($2)';
+                let value = [req.session.id,data.rows[0].id];
+                client.query(sqlQuery, value).then(data => {
+                });
+            }
+          })
+          res.status(200).send([req.session.id,data.rows[0].id]);
+          });
+            
       }
       else{
         res.status(500).send("Wrong Username or Password");
       }
       });
     }
-
-
-
+  
   } catch (error) {
     res.status(500).send('Sorry, something went wron' + error);
   }
 }
+
+
+function logout(req,res){
+  req.session.destroy(function(err) {
+    // cannot access session here
+    res.end("Logout Done");
+
+  })
+}
+
 
 
 function newUser(req, res) {
@@ -140,6 +165,8 @@ function getData(req, res) {
     res.status(200).send("SCS");
   }else res.status(500).send("Enter Name");
 }
+
+
 
 
     client.connect().then((data) => {
