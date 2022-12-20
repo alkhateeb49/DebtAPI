@@ -42,27 +42,15 @@ app.get('/newUser', newUser)
 app.get('/show', getUser)
 app.get('/login', login)
 app.get('/logout', logout)
+app.post('/action', action)
 
-app.post('/', getData)
+
 
 
 function home(req, res) {
 res.sendFile('index.html', {root: __dirname});
-  // if (req.session.views) {
-  //   req.session.views++
-  //   res.setHeader('Content-Type', 'text/html')
-  //   res.write('<p>views: ' + req.session.views + '</p>')
-  //   res.write('<p>expires in: ' + (req.session.cookie.maxAge / 1000) + 's</p>')
-  //   res.end()
-  // } else {
-  //   req.session.views = 1
-  //   res.end('welcome to the session demo. refresh!')
-  // }
-  // req.session.regenerate(function(err) {
-  //   // will have a new session here
-  //   res.end(req.session.id);
-  // })
 }
+
 function test(req, res) {
   res.end(req.session.id);
 }
@@ -153,19 +141,19 @@ function getUser(req, res) {
       res.status(200).send(data.rows);
       });
 }
-function getData(req, res) {
-  if(req.body.name){
-    // console.log(req.body.name);
-    let UserName = req.body.name;
-    let sqlQuery = 'SELECT * FROM TestData WHERE UserName = ($1)';
-    let value = [UserName];
-    client.query(sqlQuery, value).then(data => {
-      console.log(data.rows);
-      });
-    res.status(200).send("SCS");
-  }else res.status(500).send("Enter Name");
-}
 
+
+function action (req,res){
+  if(!req.body.session||!req.body.id){res.status(500).send("Missing data");}
+  client.query('SELECT * FROM SessionID WHERE userId = ($1) AND session = ($2)',[req.body.id,req.body.session]).then(data => {
+    if(data.rows.length === 1){
+      res.status(200).send("SCS");
+    }
+    else {
+      res.status(500).send('Please Login');
+    }
+  })
+}
 
 
 
