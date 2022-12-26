@@ -17,6 +17,21 @@ app.use(session({ secret: 'kAjllfhlTg6zvvW52D6f', cookie: { maxAge: null }}))
 //
 
 
+
+// Date
+let date_ob = new Date();
+
+// current date
+// adjust 0 before single digit date
+let date = ("0" + date_ob.getDate()).slice(-2);
+// current month
+let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+// current year
+let year = date_ob.getFullYear();
+// prints date in YYYY-MM-DD format
+var TodDate=year + "-" + month + "-" + date;
+// 
+
 let pg = require('pg');
 const client = new pg.Client(process.env.DATABASE_URL);
 
@@ -38,14 +53,18 @@ process.on
 
 app.get('/', home)
 app.get('/test', test)
-app.get('/newUser', newUser)
+app.get('/newuser', newUser)
 app.get('/show', getUser)
 app.get('/login', login)
 app.get('/logout', logout)
-app.post('/action', action)
+app.post('/createdebt', createdebt)
+app.get('/showdebt', showdebt)
 
-
-
+// 
+app.get('/mysession',function(req,res){
+  res.send([req.session.UserId,req.session.username,req.session.email,req.session.phone]);
+});
+// 
 
 function home(req, res) {
 res.sendFile('index.html', {root: __dirname});
@@ -64,24 +83,13 @@ function login(req, res) {
     
     client.query('SELECT * FROM Users WHERE userName = ($1) AND password = ($2)',[UserName,password]).then(data => {
       if(data.rows.length == 1){
-        req.session.regenerate(function(err) {
-
-          client.query('SELECT * FROM SessionID WHERE userName = ($1)',[data.rows[0].username]).then(data2 => {
-            if(data2.rows.length == 0){
-              let sqlQuery = 'insert into SessionID (userId,userName,email,phone,Session) values ($1,$2,$3,$4,$5)';
-              let value = [data.rows[0].id,data.rows[0].username,data.rows[0].email,data.rows[0].phone,req.session.id];
-              client.query(sqlQuery, value).then(data => {
-              });
-            }
-            else{
-                let sqlQuery = 'update SessionID SET Session = ($1) where userId = ($2)';
-                let value = [req.session.id,data.rows[0].id];
-                client.query(sqlQuery, value).then(data => {
-                });
-            }
-          })
-          res.status(200).send([req.session.id,data.rows[0].id]);
-          });
+        
+        req.session.UserId = data.rows[0].id;
+        req.session.username = data.rows[0].username;
+        req.session.email = data.rows[0].email;
+        req.session.phone = data.rows[0].phone;
+        
+        res.send('Session set!');
             
       }
       else{
@@ -97,11 +105,9 @@ function login(req, res) {
 
 
 function logout(req,res){
-  req.session.destroy(function(err) {
-    // cannot access session here
-    res.end("Logout Done");
+  req.session.destroy();
+  res.end("Logout Done");
 
-  })
 }
 
 
@@ -123,9 +129,8 @@ function newUser(req, res) {
           let sqlQuery = 'insert into Users(userName,email,password,phone) values ($1,$2,$3,$4)';
           let value = [UserName,email,password,phone];
           client.query(sqlQuery, value).then(data => {
-          console.log('data returned back from db ',data);
           });
-          res.status(200).send(UserName+" "+email+" "+phone);
+          res.status(200).send("Registration Is Done");
         }
       });
   }
@@ -143,16 +148,24 @@ function getUser(req, res) {
 }
 
 
-function action (req,res){
-  if(!req.body.session||!req.body.id){res.status(500).send("Missing data");}
-  client.query('SELECT * FROM SessionID WHERE userId = ($1) AND session = ($2)',[req.body.id,req.body.session]).then(data => {
-    if(data.rows.length === 1){
-      res.status(200).send("SCS");
-    }
-    else {
-      res.status(500).send('Please Login');
-    }
-  })
+function createdebt (req,res){
+  if(req.session.username==null){res.status(500).send("Login first");}
+  else if(!req.body.title||!req.body.descr||!req.body.amount||!req.body.createdto||!req.body.duedate){res.status(500).send("Missing data");}
+  else{
+  let sqlQuery = 'insert into debt (status,title,descr,amount,createdby,createdto,creationdate,duedate,completiondate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)';
+  let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.body.createdto,TodDate,req.body.duedate,"Not Sets"];
+  client.query(sqlQuery, value).then(data => {
+  });
+  res.status(200).send("Registration Is Done");
+  }
+}
+
+
+function showdebt(req,res){
+  let sqlQuery = 'SELECT * FROM debt';
+  client.query(sqlQuery).then(data => {
+    res.status(200).send(data.rows);
+    });
 }
 
 
