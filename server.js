@@ -29,7 +29,7 @@ let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
 // current year
 let year = date_ob.getFullYear();
 // prints date in YYYY-MM-DD format
-var TodDate=year + "-" + month + "-" + date;
+var TodDate=year + "/" + month + "/" + date;
 // 
 
 let pg = require('pg');
@@ -52,13 +52,17 @@ process.on
 );
 
 app.get('/', home)
-app.get('/test', test)
 app.get('/newuser', newUser)
 app.get('/show', getUser)
 app.get('/login', login)
 app.get('/logout', logout)
-app.post('/createdebt', createdebt)
-app.get('/showdebt', showdebt)
+app.post('/createdebt', createDebt)
+app.get('/acceptdebt', acceptDebt)
+app.get('/debtbyme', debtByMe)
+app.get('/debtforme', debtForMe)
+
+
+
 
 // 
 app.get('/mysession',function(req,res){
@@ -68,10 +72,6 @@ app.get('/mysession',function(req,res){
 
 function home(req, res) {
 res.sendFile('index.html', {root: __dirname});
-}
-
-function test(req, res) {
-  res.end(req.session.id);
 }
 
 function login(req, res) {
@@ -89,7 +89,7 @@ function login(req, res) {
         req.session.email = data.rows[0].email;
         req.session.phone = data.rows[0].phone;
         
-        res.send('Session set!');
+        res.status(200).send("Login Successfully");
             
       }
       else{
@@ -103,14 +103,11 @@ function login(req, res) {
   }
 }
 
-
 function logout(req,res){
   req.session.destroy();
   res.end("Logout Done");
 
 }
-
-
 
 function newUser(req, res) {
   try {
@@ -142,31 +139,69 @@ function newUser(req, res) {
 function getUser(req, res) {
     let sqlQuery = 'SELECT * FROM Users';
     client.query(sqlQuery).then(data => {
-      console.log(data.rows);
+      // console.log(data.rows);
       res.status(200).send(data.rows);
       });
 }
 
-
-function createdebt (req,res){
+function createDebt (req,res){
   if(req.session.username==null){res.status(500).send("Login first");}
   else if(!req.body.title||!req.body.descr||!req.body.amount||!req.body.createdto||!req.body.duedate){res.status(500).send("Missing data");}
   else{
   let sqlQuery = 'insert into debt (status,title,descr,amount,createdby,createdto,creationdate,duedate,completiondate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)';
-  let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.body.createdto,TodDate,req.body.duedate,"Not Sets"];
+  let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.body.createdto,TodDate,req.body.duedate,null];
   client.query(sqlQuery, value).then(data => {
   });
   res.status(200).send("Registration Is Done");
   }
 }
 
+function acceptDebt(req,res){
+  if(req.session.username==null){res.status(500).send("Login first");}
+  else if(req.query.DebtId==undefined){res.status(500).send("Missing data");}
+  else{
+    client.query('SELECT * FROM debt WHERE id = ($1) and createdto = ($2)',[req.query.DebtId,req.session.UserId]).then(data => {
+      if(data.rows.length == 1){
+        client.query('UPDATE debt SET status = ($1) WHERE id = ($2) and createdto = ($3)',[true,req.query.DebtId,req.session.UserId]).then(data => {
+          res.status(200).send("Accepted Successfully");
+        });
+      }
+      else{
+        res.status(500).send("Permission Denied");
+      }
+      });
 
-function showdebt(req,res){
-  let sqlQuery = 'SELECT * FROM debt';
-  client.query(sqlQuery).then(data => {
-    res.status(200).send(data.rows);
-    });
+  }
 }
+
+function debtByMe(req,res){
+  if(req.session.username==null){res.status(500).send("Login first");}
+  else{
+    client.query('SELECT * FROM debt WHERE createdby = ($1)',[req.session.UserId]).then(data => {
+      res.status(200).send(data.rows);
+    });
+  }
+}
+
+function debtForMe(req,res){
+  if(req.session.username==null){res.status(500).send("Login first");}
+  else{
+    client.query('SELECT * FROM debt WHERE createdto = ($1)',[req.session.UserId]).then(data => {
+      res.status(200).send(data.rows);
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
