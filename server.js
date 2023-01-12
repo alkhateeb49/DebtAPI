@@ -75,6 +75,11 @@ res.sendFile('index.html', {root: __dirname});
 }
 
 function login(req, res) {
+  if(req.session.username!=null){
+    req.session.reload(function(err) {
+      // session updated
+    })
+  }
   try {
     if(req.query.name==undefined||req.query.pass==undefined){res.status(500).send("Missing data");}
     else{
@@ -141,6 +146,7 @@ function getUser(req, res) {
     client.query(sqlQuery).then(data => {
       // console.log(data.rows);
       res.status(200).send(data.rows);
+      res.status(200).send("ALL USERS");
       });
 }
 
