@@ -9,12 +9,41 @@
       </header>
 
     <h1>Debts For Me</h1>
+
     <ul>
         <% for(var i=0; i<data.length; i++) {%>
             <li><%= JSON.stringify(data[i])%></li><form action="/acceptDebt" method="post"><input type="text" name="DebtId" value="<%= data[i].id %>" hidden><input value="Accept" type="submit"></form>
         <% } %>
     </ul>
 
+    <% for(var i=0; i<data.length; i++) {%>
+    <% if(data[i].status == false) {%>
+    <div class="card text-center mx-5">
+        <div class="card-header">
+            <%= data[i].title%>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title"><%= data[i].descr%></h5>
+          <h5 class="card-title">Amount <a class="text-danger"><%= data[i].amount%> JOR</a></h5>
+          <h5 class="card-title">By <a class="text-danger"><%= data[i].createdbyname%></a></h5>
+          <p class="card-text">Created on: <%= data[i].creationdate%> &nbsp;&nbsp; Due date: <%= data[i].duedate%></p>
+          <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+          
+          <form action="/acceptDebt" method="post">
+            <input type="text" name="DebtId" value="<%= data[i].id %>" hidden>
+            <input class="btn btn-primary" value="Accept" type="submit">
+          </form>
+        
+    </div>
+        <!-- <div class="card-footer text-muted">
+          2 days ago
+        </div> -->
+    </div>
+    <br>
+    <% } %>
+    <% } %>
+
+    
 
 
 </body>

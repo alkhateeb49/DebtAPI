@@ -32,7 +32,7 @@ let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
 // current year
 let year = date_ob.getFullYear();
 // prints date in YYYY-MM-DD format
-var TodDate=year + "/" + month + "/" + date;
+var TodDate=year + "-" + month + "-" + date;
 // 
 
 let pg = require('pg');
@@ -184,10 +184,10 @@ function createDebtview(req,res){
 
 function createDebt (req,res){
   if(req.session.username==null){res.redirect('../');}
-  else if(!req.body.title||!req.body.descr||!req.body.amount||!req.body.createdto||!req.body.duedate){res.redirect('/create');}
+  else if(!req.body.title||!req.body.descr||!req.body.amount||!req.body.createdto||!req.body.createdtoname||!req.body.duedate){res.redirect('/create');}
   else{
-  let sqlQuery = 'insert into debt (status,title,descr,amount,createdby,createdto,creationdate,duedate,completiondate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)';
-  let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.body.createdto,TodDate,req.body.duedate,null];
+  let sqlQuery = 'insert into debt (status,title,descr,amount,createdby,createdbyname,createdto,createdtoname,creationdate,duedate,completiondate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)';
+  let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.session.username,req.body.createdto,req.body.createdtoname,TodDate,req.body.duedate,null];
   client.query(sqlQuery, value).then(data => {
   });
   res.render('pages/createDebt',{

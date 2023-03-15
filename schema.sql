@@ -9,7 +9,9 @@ Debt(
   descr VARCHAR(256) NOT NULL,
   amount NUMERIC NOT NULL,
   createdBy INT NOT NULL,
+  createdByName VARCHAR(256) NOT NULL,
   createdTo INT NOT NULL,
+  createdToName VARCHAR(256) NOT NULL,
   creationDate VARCHAR(256) NOT NULL,
   dueDate VARCHAR(256) NOT NULL,
   completionDate VARCHAR(256)
