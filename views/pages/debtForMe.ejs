@@ -16,6 +16,9 @@
         <% } %>
     </ul>
 
+
+    <br><hr data-content="Not Accepted" class="hr-text"><br>
+
     <% for(var i=0; i<data.length; i++) {%>
     <% if(data[i].status == false) {%>
     <div class="card text-center mx-5">
@@ -43,6 +46,37 @@
     <% } %>
     <% } %>
 
+    <hr>
+    <br><hr data-content="Accepted" class="hr-text"><br>
+
+    <% for(var i=0; i<data.length; i++) {%>
+        <% if(data[i].status == true) {%>
+        <div class="card text-center mx-5">
+            <div class="card-header">
+                <%= data[i].title%>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title"><%= data[i].descr%></h5>
+              <h5 class="card-title">Amount <a class="text-danger"><%= data[i].amount%> JOR</a></h5>
+              <h5 class="card-title">By <a class="text-danger"><%= data[i].createdbyname%></a></h5>
+              <p class="card-text">Created on: <%= data[i].creationdate%> &nbsp;&nbsp; Due date: <%= data[i].duedate%></p>
+              <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+              
+              <form action="/acceptDebt" method="post">
+                <input type="text" name="DebtId" value="<%= data[i].id %>" hidden>
+                <input class="btn btn-primary" value="Accept" type="submit">
+              </form>
+            
+        </div>
+            <!-- <div class="card-footer text-muted">
+              2 days ago
+            </div> -->
+        </div>
+        <br>
+        <% } %>
+        <% } %>
+
+        <hr>
     
 
 
@@ -50,4 +84,31 @@
 <script>
     document.getElementById("debtForMe").classList.add("active");
 </script>
+
+<style>
+    
+hr.hr-text {
+  position: relative;
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, rgba(255,0,0,0), rgb(51, 51, 51),rgba(255,0,0,0));
+}
+
+hr.hr-text::before {
+    content: attr(data-content);
+    display: inline-block;
+    background: #fff;
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #999;
+    border-radius: 30rem;
+    padding: 0.2rem 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+</style>
+
 </html>

@@ -59,6 +59,7 @@ process.on
 
 app.get('/', home)
 app.get('/test',test )
+app.get('/signup',signUp)
 app.get('/newuser', newUser)
 app.get('/show', getUser)
 app.get('/login', checkLogin)
@@ -140,11 +141,22 @@ function logout(req,res){
   res.redirect('../')
 }
 
+function signUp(req,res){
+  if(req.session.username!=null){
+    res.redirect('../');
+  }else{
+    res.render('pages/signup', {
+      status: status
+    });
+    status ="";
+  }
+}
+
 function newUser(req, res) {
   try {
     if(req.query.name==undefined||req.query.email==undefined||req.query.pass==undefined||req.query.phone==undefined){res.status(200).send("Missing data");}
-    else if(req.query.pass.length<8){res.status(200).send("Password less than 8 characters");}
-    else if(req.query.phone.length<10){res.status(200).send("Mobile number less than 10 characters");}
+    else if(req.query.pass.length<8){status="Password less than 8 characters";}
+    else if(req.query.phone.length<10){status="Mobile number less than 10 characters";}
     else{
     let UserName = req.query.name;
     let email = req.query.email;
@@ -152,16 +164,17 @@ function newUser(req, res) {
     let phone = req.query.phone;
     
     client.query('SELECT * FROM Users WHERE userName = ($1) OR email = ($2)',[UserName,email]).then(data => {
-      if(data.rows.length != 0){res.status(200).send("Username or email exists");}
-        else{
-          let sqlQuery = 'insert into Users(userName,email,password,phone) values ($1,$2,$3,$4)';
-          let value = [UserName,email,password,phone];
-          client.query(sqlQuery, value).then(data => {
-          });
-          res.status(200).send("Registration Is Done");
-        }
+      if(data.rows.length != 0){status="Username or email exists";}
+      else{
+        let sqlQuery = 'insert into Users(userName,email,password,phone) values ($1,$2,$3,$4)';
+        let value = [UserName,email,password,phone];
+        client.query(sqlQuery, value).then(data => {
+        });
+        status='done';
+      }
       });
   }
+  res.redirect('/signup')
   } catch (error) {
     res.status(200).send('Sorry, something went wron' + error);
   }
@@ -174,25 +187,38 @@ function getUser(req, res) {
       res.status(200).send(data.rows);
       });
 }
+
 function createDebtview(req,res){
   if(req.session.username==null){res.redirect('../');}else{
-    res.render('pages/createDebt',{
-      status: ""
-    });
+    let sqlQuery = 'SELECT username FROM Users';
+    client.query(sqlQuery).then(data => {
+      res.render('pages/createDebt',{
+        status: status,users: data.rows
+      });status="";
+      });
   }
 }
 
 function createDebt (req,res){
   if(req.session.username==null){res.redirect('../');}
-  else if(!req.body.title||!req.body.descr||!req.body.amount||!req.body.createdto||!req.body.createdtoname||!req.body.duedate){res.redirect('/create');}
+  else if(!req.body.title||!req.body.descr||!req.body.amount||!req.body.createdtoname||!req.body.duedate){status= "Please fill all values";res.redirect('/create');}
   else{
-  let sqlQuery = 'insert into debt (status,title,descr,amount,createdby,createdbyname,createdto,createdtoname,creationdate,duedate,completiondate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)';
-  let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.session.username,req.body.createdto,req.body.createdtoname,TodDate,req.body.duedate,null];
-  client.query(sqlQuery, value).then(data => {
-  });
-  res.render('pages/createDebt',{
-    status: "done"
-  });
+
+    client.query('SELECT id FROM users WHERE username = ($1)',[req.body.createdtoname]).then(data => {
+      if(data.rows.length == 1){
+
+        let sqlQuery = 'insert into debt (status,title,descr,amount,createdby,createdbyname,createdto,createdtoname,creationdate,duedate,completiondate) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)';
+        let value = [0,req.body.title,req.body.descr,req.body.amount,req.session.UserId,req.session.username,data.rows[0].id,req.body.createdtoname,TodDate,req.body.duedate,null];
+        client.query(sqlQuery, value).then(data => {
+        });
+        status= "done"
+        res.redirect('/create');
+      }
+      else{
+        status= "Create to User not exist"
+        res.redirect('/create');
+      }
+      });
   }
 }
 
@@ -213,7 +239,6 @@ function acceptDebt(req,res){
 
   }
 }
-
 
 function debtByMe(req,res){
   if(req.session.username==null){res.redirect('../');}

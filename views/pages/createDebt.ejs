@@ -10,6 +10,22 @@
 </head>
 <body>
 
+    <script>
+        if ("<%= status %>" == "done"){
+          Swal.fire({
+            icon: 'success',
+            title: 'Done'
+        })
+        }else if ("<%= status %>" != ""){
+        Swal.fire({
+            icon: 'error',
+            title: '<%= status %>'
+          })
+        }
+
+    </script>
+
+
 
     <h1>Create Debt</h1>
     <form action="/createDebt" method="post">
@@ -23,15 +39,40 @@
         <input type="text" name="amount">
         <br>
         <label for="createdto">Created To</label><br>
-        <input type="text" name="createdto">
+        <input id="users" list="browsers" name="createdtoname" onchange="showUsers()">
+
+        <datalist id="browsers">
+            <% for(var i=0; i<users.length; i++) {%>
+            <option value="<%= users[i].username%>">
+            <% } %>
+        </datalist>
+
         <br>
         <label for="duedate">Due Date</label><br>
         <input type="date" name="duedate">
         <br>
-        <input type="submit" value="Create">
+        <input id="create" type="submit" value="Create" disabled>
     </form>
 
 
+    <script>
+
+        var arr=[];
+        for(var i=0;i<document.getElementById("browsers").options.length;i++){
+            arr.push(document.getElementById("browsers").options[i].value);
+        }
+
+        function showUsers() {
+            if(arr.includes(document.getElementById("users").value)){
+                // console.log("Done");
+                document.getElementById("create").removeAttribute("disabled");
+            }else{
+                // alert("Enter valed username");
+                document.getElementById("create").setAttribute('disabled', '');
+            }   
+        }
+
+    </script>
 
     <script>
         if ("<%= status %>" == "done"){
@@ -43,6 +84,16 @@
           })
             setTimeout(function() {
                 window.location.replace("../");
+            }, 1300);
+        }else if("<%= status %>" == "Error"){
+            Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            showConfirmButton: false,
+            timer: 1300
+          })
+            setTimeout(function() {
+                window.location.replace("../create");
             }, 1300);
         }
 

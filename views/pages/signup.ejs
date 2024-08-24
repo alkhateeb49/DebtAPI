@@ -22,14 +22,27 @@
 
 
 
-    <title>Login</title>
+    <title>Sign Up</title>
 </head>
 <body>
 
     <!-- <p><%= status %></p> -->
     
     <script>
-        if ("<%= status %>" != ""){
+        if ("<%= status %>" == "done"){
+          Swal.fire({
+            position: 'center',
+            icon: 'success',
+            title: 'Done',
+            showConfirmButton: false,
+            timer: 1500
+          })
+          window.setTimeout(function(){
+          window.location.href = "./";
+          }, 1000);
+
+        }
+        else if ("<%= status %>" != ""){
         Swal.fire({
             icon: 'error',
             title: '<%= status %>'
@@ -49,16 +62,18 @@
 <div class="middle">
       <div id="login">
 
-        <form action="/login" method="get">
+        <form action="/newuser" method="get">
 
           <fieldset class="clearfix">
 
             <p ><span class="fa fa-user"></span><input type="text" name="name" Placeholder="Username" required></p> <!-- JS because of IE support; better: placeholder="Username" -->
+            <p><span class="fa fa-envelope"></span><input type="text" name="email" Placeholder="Email" required></p> <!-- JS because of IE support; better: placeholder="Password" -->
             <p><span class="fa fa-lock"></span><input type="password" name="pass" Placeholder="Password" required></p> <!-- JS because of IE support; better: placeholder="Password" -->
+            <p><span class="fa fa-phone"></span><input type="text" name="phone" Placeholder="Mobile Number" required></p> <!-- JS because of IE support; better: placeholder="Password" -->
             
             <div>
-                <span style="font-size:120%; width:48%; text-align:left;  display: inline-block;"><a class="small-text" href="signup">Create new account</a></span>
-                <span style="width:50%; text-align:right;  display: inline-block;"><input type="submit" value="Sign In"></span>
+              <span style="font-size:120%; color:#b3b3b3; width:48%; text-align:left;  display: inline-block;">Have an account? <a class="small-text" href="/.">Log in</a></span>
+              <span style="width:50%; text-align:right; display: inline-block;"><input type="submit" value="Sign UP"></span>
             </div>
 
           </fieldset>
@@ -69,7 +84,7 @@
 
       </div> <!-- end login -->
       <div class="logo">Debts
-          
+          <h2>Creating new account</h2>
           <div class="clearfix"></div>
       </div>
       
